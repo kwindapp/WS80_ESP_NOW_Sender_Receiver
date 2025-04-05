@@ -15,14 +15,14 @@ const char* password = "12345678";  // Replace with your Wi-Fi password
 #define DISPLAY_I2C_ADDR 0x3C
 
 // MQTT settings (optional, controlled by useMQTT)
-const char* mqtt_server = "152.xxxxxxxx";  // Replace with your MQTT server address
+const char* mqtt_server = "152.53.16.228";  // Replace with your MQTT server address
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 const char* mqttTopic = "KWind/data/WS80_Lora";
 
-bool useMQTT = false;   // Set to true to enable MQTT, false to disable
+bool useMQTT = true;   // Set to true to enable MQTT, false to disable
 bool useKnots = true;  // Set to true to show wind speed in knots, false to show in m/s
-
+const int gpioPin = 0;  // GPIO 0
 // Setup OLED display
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, DISPLAY_I2C_PIN_RST, ESP_SCL_PIN, ESP_SDA_PIN);
 
@@ -155,6 +155,16 @@ void setup() {
   // Initialize OLED display before any Wi-Fi or MQTT operations
   Wire.begin(ESP_SDA_PIN, ESP_SCL_PIN);
   u8g2.begin();
+ pinMode(gpioPin, INPUT);  // Set GPIO 0 as input
+
+   // If button is pressed (LOW), disable MQTT
+  if (digitalRead(gpioPin) == LOW) {
+    useMQTT = false;
+    Serial.println("🚫 MQTT Disabled (Button Press Detected)");
+  } else {
+    useMQTT = true;
+    Serial.println("✅ MQTT Enabled");
+  }
 
   // Initialize ESP-NOW
   WiFi.mode(WIFI_STA);
