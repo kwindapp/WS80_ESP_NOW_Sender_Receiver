@@ -1,4 +1,4 @@
-- BatVoltage added
+- BatVolt added
 
 Code for ESP32 Heltec LORA WIFI V2 / for Lilygo ESP32 LORA WIFI check code and pins
 if you get any other UART out from other Anemometers please let me know!!!
