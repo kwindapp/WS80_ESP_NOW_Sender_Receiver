@@ -18,18 +18,18 @@ HardwareSerial mySerial(2);  // Use UART2 for serial communication
 #define MY_SERIAL_TX_PIN 13   // Change this to match your wiring
 
 // Structure for ESP-NOW data transmission
-typedef struct struct_message {
+typedef struct __attribute__((packed)) struct_message {
   int windDir;
   float windSpeed;
   float windGust;
   float temperature;
   float humidity;
+  float batVoltage; // Add battery voltage field
 } struct_message;
 
 struct_message dataToSend;
 
 // MAC address of the receiver ESP32
-
 uint8_t receiverMAC[] = {0x3C, 0x71, 0xBF, 0xAB, 0x5B, 0x78};
 
 // Serial buffer
@@ -129,13 +129,18 @@ void parseData(String data) {
   if (data.indexOf("Humi") != -1) {
     dataToSend.humidity = getValue(data, "Humi");
   }
+  if (data.indexOf("BatVoltage") != -1) {
+    dataToSend.batVoltage = getValue(data, "BatVoltage"); // Parse BatVoltage
+  }
 
+  // Print parsed data to serial
   Serial.println("\n📊 Parsed Data:");
   Serial.printf("🌬 WindDir: %d°\n", dataToSend.windDir);
   Serial.printf("💨 WindSpeed: %.1f knots\n", dataToSend.windSpeed);
   Serial.printf("🌪 WindGust: %.1f knots\n", dataToSend.windGust);
   Serial.printf("🌡 Temp: %.1f C\n", dataToSend.temperature);
   Serial.printf("💧 Humi: %.1f %%\n", dataToSend.humidity);
+  Serial.printf("🔋 BatVoltage: %.2f V\n", dataToSend.batVoltage);
 }
 
 // Helper function to extract values from the serial data
@@ -157,10 +162,18 @@ void displayData() {
 
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_6x10_tf);
-  u8g2.drawStr(0, 10, ("WindDir: " + String(dataToSend.windDir) + "°").c_str());
-  u8g2.drawStr(0, 20, ("WindSpeed: " + String(dataToSend.windSpeed) + " knots").c_str());
-  u8g2.drawStr(0, 30, ("WindGust: " + String(dataToSend.windGust) + " knots").c_str());
-  u8g2.drawStr(0, 40, ("Temp: " + String(dataToSend.temperature) + " C").c_str());
-  u8g2.drawStr(0, 50, ("Humi: " + String(dataToSend.humidity) + " %").c_str());
+  u8g2.drawStr(0, 10, ("WindDir: " + String(dataToSend.windDir) + " ").c_str());
+  u8g2.drawStr(0, 20, ("Wind   : " + String(dataToSend.windSpeed) + "  knots").c_str());
+  u8g2.drawStr(0, 30, ("Gust.  : " + String(dataToSend.windGust) + "  knots").c_str());
+  u8g2.drawStr(0, 40, ("Temp.  : " + String(dataToSend.temperature) + "  C").c_str());
+  u8g2.drawStr(0, 50, ("Humi.  : " + String(dataToSend.humidity) + "  %").c_str());
+  u8g2.drawStr(0, 60, ("BatVolt: " + String(dataToSend.batVoltage) + "   V").c_str());
   u8g2.sendBuffer();
+}
+
+// Function to read the battery voltage
+float readBatteryVoltage() {
+  int adcValue = analogRead(35);  // Read the internal ADC pin (e.g., GPIO 35 for the battery)
+  float voltage = (adcValue / 4095.0) * 3.3 * 2; // Calculate battery voltage (adjust for your board's circuit)
+  return voltage;
 }
