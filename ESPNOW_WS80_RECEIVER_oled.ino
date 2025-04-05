@@ -2,6 +2,7 @@
 #include <U8g2lib.h>
 #include <WiFi.h>
 #include <esp_now.h>
+#include <esp_wifi.h>  // <-- Required for setting channel
 #include <PubSubClient.h>
 
 // Wi-Fi Credentials
@@ -15,17 +16,18 @@ const char* password = "12345678";
 #define DISPLAY_I2C_ADDR 0x3C
 
 // MQTT settings
-const char* mqtt_server = "1.xxxxxxxx";
+const char* mqtt_server = "15.xxxxxxxxx"; //addyourmqtt
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 const char* mqttTopic = "KWind/data/WS80_Lora";
 
-bool useMQTT = true;
+// Global flags
+bool useMQTT = false;    // <--- SET TO true if you want MQTT enabled
 bool useKnots = true;
-unsigned long mqttInterval = 0;  // Default 10 seconds
+unsigned long mqttInterval = 10000;  // 10 seconds
 unsigned long lastMQTTSendTime = 0;
 
-// OLED display
+// OLED Display
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, DISPLAY_I2C_PIN_RST, ESP_SCL_PIN, ESP_SDA_PIN);
 
 // ESP-NOW data structure
@@ -172,13 +174,8 @@ void onDataRecv(const esp_now_recv_info* info, const uint8_t* data, int len) {
 void setup() {
   Serial.begin(115200);
 
-  // Initialize GPIO0 button (input pull-up)
-  pinMode(0, INPUT_PULLUP);
-
   if (useMQTT) {
-    WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
-
     Serial.println("Connecting to WiFi...");
     while (WiFi.status() != WL_CONNECTED) {
       delay(500);
@@ -187,13 +184,21 @@ void setup() {
     Serial.println("\n✅ WiFi connected!");
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
+
+    int wifiChannel = WiFi.channel();
+    Serial.printf("📶 Wi-Fi Channel: %d\n", wifiChannel);
+
+    // 🛠 Ensure ESP-NOW uses same WiFi channel
+    esp_wifi_set_promiscuous(true);
+    esp_wifi_set_channel(wifiChannel, WIFI_SECOND_CHAN_NONE);
+    esp_wifi_set_promiscuous(false);
   }
 
-  // Initialize I2C and OLED
   Wire.begin(ESP_SDA_PIN, ESP_SCL_PIN);
   u8g2.begin();
 
-  // Re-initialize ESP-NOW after WiFi is connected
+  WiFi.mode(WIFI_STA);
+
   if (esp_now_init() != ESP_OK) {
     Serial.println("❌ ESP-NOW init failed");
     return;
@@ -207,16 +212,11 @@ void setup() {
       Serial.println("📥 MQTT message received");
     });
   }
+
+  Serial.println("Receiver MAC: " + WiFi.macAddress());
 }
 
 void loop() {
-  // Check the state of GPIO 0 to toggle MQTT on/off
-  if (digitalRead(0) == LOW) {
-    useMQTT = !useMQTT;  // Toggle MQTT state
-    Serial.println(useMQTT ? "✅ MQTT Enabled" : "❌ MQTT Disabled");
-    delay(1000);  // Debounce delay for button press
-  }
-
   if (useMQTT && !mqttClient.connected()) {
     Serial.println("🔌 MQTT disconnected, reconnecting...");
     reconnectMQTT();
