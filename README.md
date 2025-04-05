@@ -1,4 +1,4 @@
-ESP32 Heltec or Lilygo
+Code for ESP32 Heltec LORA WIFI V2 / for Lilygo ESP32 LORA WIFI check code and pins
 
 
 
