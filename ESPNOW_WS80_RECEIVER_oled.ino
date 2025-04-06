@@ -5,8 +5,8 @@
 #include <PubSubClient.h>
 
 // Wi-Fi Credentials
-const char* ssid = "KWindMobile";   // Replace with your Wi-Fi SSID
-const char* password = "12345678";  // Replace with your Wi-Fi password
+const char* ssid = "Kite Beach Inn";     // Replace with your Wi-Fi SSID
+const char* password = "1963kbeachinn";  // Replace with your Wi-Fi password
 
 // Display settings
 #define DISPLAY_I2C_PIN_RST 16
@@ -15,13 +15,13 @@ const char* password = "12345678";  // Replace with your Wi-Fi password
 #define DISPLAY_I2C_ADDR 0x3C
 
 // MQTT settings (optional, controlled by useMQTT)
-const char* mqtt_server = "152.53.16.228";  // Replace with your MQTT server address
+const char* mqtt_server = "1.1..1.1.";  // Replace with your MQTT server address
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 const char* mqttTopic = "KWind/data/WS80_Lora";
 
-bool useMQTT = true;   // Set to true to enable MQTT, false to disable
-bool useKnots = true;  // Set to true to show wind speed in knots, false to show in m/s
+bool useMQTT = false;   // Set to true to enable MQTT, false to disable
+bool useKnots = true;   // Set to true to show wind speed in knots, false to show in m/s
 const int gpioPin = 0;  // GPIO 0
 // Setup OLED display
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, DISPLAY_I2C_PIN_RST, ESP_SCL_PIN, ESP_SDA_PIN);
@@ -61,7 +61,7 @@ void onDataRecv(const esp_now_recv_info* info, const uint8_t* data, int len) {
     Serial.printf("🌬️ WindGust: %.1f %s\n", convertWindSpeed(receivedData.windGust), useKnots ? "knots" : "m/s");
     Serial.printf("🌡️ Temp: %.1f°C\n", receivedData.temperature);
     Serial.printf("💧 Humidity: %.1f%%\n", receivedData.humidity);
-    Serial.printf("🔋 BatVoltage: %.2f V\n", receivedData.BatVoltage); // Display battery voltage
+    Serial.printf("🔋 BatVoltage: %.2f V\n", receivedData.BatVoltage);  // Display battery voltage
 
     displayData();
 
@@ -140,7 +140,7 @@ void reconnectMQTT() {
     Serial.print("MQTT connecting...");
     if (mqttClient.connect("LoRaReceiverClient")) {
       Serial.println("✅ MQTT Connected");
-     // mqttClient.subscribe(mqttTopic);  // Ensure we receive data too
+      // mqttClient.subscribe(mqttTopic);  // Ensure we receive data too
     } else {
       Serial.print("❌ failed, rc=");
       Serial.println(mqttClient.state());
@@ -155,17 +155,22 @@ void setup() {
   // Initialize OLED display before any Wi-Fi or MQTT operations
   Wire.begin(ESP_SDA_PIN, ESP_SCL_PIN);
   u8g2.begin();
- pinMode(gpioPin, INPUT);  // Set GPIO 0 as input
-
-   // If button is pressed (LOW), disable MQTT
+  pinMode(gpioPin, INPUT);  // Set GPIO 0 as input
+  u8g2.setFont(u8g2_font_6x10_tf);
+  // If button is pressed (LOW), enable MQTT
   if (digitalRead(gpioPin) == LOW) {
-    useMQTT = false;
-    Serial.println("🚫 MQTT Disabled (Button Press Detected)");
-  } else {
     useMQTT = true;
     Serial.println("✅ MQTT Enabled");
+    u8g2.setCursor(0, 20);
+    u8g2.print("MQTT Enabled");
+  } else {
+    useMQTT = false;
+    Serial.println("🚫 MQTT Disabled (Button Press Detected)");
+    u8g2.setCursor(0, 20);
+    u8g2.print("MQTT Disabled");
   }
-
+  u8g2.sendBuffer();
+  delay(2000);
   // Initialize ESP-NOW
   WiFi.mode(WIFI_STA);
   if (esp_now_init() != ESP_OK) {
