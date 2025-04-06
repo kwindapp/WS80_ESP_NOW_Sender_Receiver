@@ -15,7 +15,7 @@ const char* password = "1963kbeachinn";  // Replace with your Wi-Fi password
 #define DISPLAY_I2C_ADDR 0x3C
 
 // MQTT settings (optional, controlled by useMQTT)
-const char* mqtt_server = "1.1..1.1.";  // Replace with your MQTT server address
+const char* mqtt_server = "152.53.16.228";  // Replace with your MQTT server address
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 const char* mqttTopic = "KWind/data/WS80_Lora";
@@ -102,12 +102,12 @@ void displayData() {
   String windSpeedStr = String(convertWindSpeed(receivedData.windSpeed)) + (useKnots ? " knots" : " m/s");
   String windGustStr = String(convertWindSpeed(receivedData.windGust)) + (useKnots ? " knots" : " m/s");
 
-  u8g2.drawStr(0, 10, ("Wind   : " + windSpeedStr).c_str());
-  u8g2.drawStr(0, 20, ("Gust   : " + windGustStr).c_str());
-  u8g2.drawStr(0, 30, ("Dir    : " + windDirStr).c_str());
-  u8g2.drawStr(0, 40, ("Temp   : " + String(receivedData.temperature) + " C").c_str());
-  u8g2.drawStr(0, 50, ("Humi   : " + String(receivedData.humidity) + " %").c_str());
-  u8g2.drawStr(0, 60, ("Batt   : " + String(receivedData.BatVoltage) + "  V").c_str());
+  u8g2.drawStr(0, 10, ("Wind  : " + windSpeedStr).c_str());
+  u8g2.drawStr(0, 20, ("Gust  : " + windGustStr).c_str());
+  u8g2.drawStr(0, 30, ("Dir   : " + windDirStr).c_str());
+  u8g2.drawStr(0, 40, ("Temp  : " + String(receivedData.temperature) + " C").c_str());
+  u8g2.drawStr(0, 50, ("Humi  : " + String(receivedData.humidity) + " %").c_str());
+  u8g2.drawStr(0, 60, ("Batt  : " + String(receivedData.BatVoltage) + "  V").c_str());
   u8g2.sendBuffer();
 
   Serial.println("\n🖥 OLED Display Data:");
@@ -156,18 +156,18 @@ void setup() {
   Wire.begin(ESP_SDA_PIN, ESP_SCL_PIN);
   u8g2.begin();
   pinMode(gpioPin, INPUT);  // Set GPIO 0 as input
-  u8g2.setFont(u8g2_font_6x10_tf);
+  u8g2.setFont(u8g2_font_ncenB14_tr);
   // If button is pressed (LOW), enable MQTT
   if (digitalRead(gpioPin) == LOW) {
     useMQTT = true;
     Serial.println("✅ MQTT Enabled");
     u8g2.setCursor(0, 20);
-    u8g2.print("MQTT Enabled");
+    u8g2.print("MQTT ON");
   } else {
     useMQTT = false;
     Serial.println("🚫 MQTT Disabled (Button Press Detected)");
     u8g2.setCursor(0, 20);
-    u8g2.print("MQTT Disabled");
+    u8g2.print("MQTT OFF");
   }
   u8g2.sendBuffer();
   delay(2000);
