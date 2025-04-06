@@ -15,7 +15,7 @@ const char* password = "1963kbeachinn";  // Replace with your Wi-Fi password
 #define DISPLAY_I2C_ADDR 0x3C
 
 // MQTT settings (optional, controlled by useMQTT)
-const char* mqtt_server = "152.53.16.228";  // Replace with your MQTT server address
+const char* mqtt_server = "15.xxxxxxx";  // Replace with your MQTT server address
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 const char* mqttTopic = "KWind/data/WS80_Lora";
