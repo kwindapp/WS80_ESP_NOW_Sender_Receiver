@@ -11,3 +11,5 @@ Remove solar top cover ....just turn careful dont rip off the cabels !! UART tx 
 ![IMG_0436](https://github.com/user-attachments/assets/728e4624-3994-4eed-abe3-71bb0919d9c2)
 
 <img width="1078" alt="Screenshot 2025-04-05 at 15 29 39" src="https://github.com/user-attachments/assets/6286f033-66a9-4fc1-b0e0-91873e72be0d" />
+
+![IMG_0662](https://github.com/user-attachments/assets/490a2b1d-b45c-4d85-aae9-ab8e87d6c3cb)
